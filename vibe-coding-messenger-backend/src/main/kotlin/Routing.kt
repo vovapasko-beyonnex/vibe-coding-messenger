@@ -1,6 +1,7 @@
 package com.example.com
 
 
+import com.example.com.models.MessageRepository
 import io.ktor.server.application.*
 import io.ktor.server.http.content.staticResources
 
@@ -14,5 +15,9 @@ fun Application.configureRouting() {
             call.respondText("Hello World!")
         }
         staticResources("/static", "static")
+        get("/messages") {
+            val messages = MessageRepository.getAllMessages()
+            call.respond(messages)
+        }
     }
 }
