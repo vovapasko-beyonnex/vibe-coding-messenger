@@ -1,18 +1,20 @@
 package com.example.com
 
-import com.example.com.models.Message
-import com.example.com.models.MessageRepository
+import com.example.com.models.TextMessage
+import com.example.com.repositories.InMemoryMessageMessageRepository
+import com.example.com.repositories.MessageRepository
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import java.util.Collections
 import kotlin.time.Duration.Companion.seconds
 
 
 fun Application.configureSockets() {
+    val repository = InMemoryMessageMessageRepository()
+
     install(WebSockets) {
         contentConverter = KotlinxWebsocketSerializationConverter(Json{ ignoreUnknownKeys = true})
         pingPeriod = 15.seconds
@@ -26,16 +28,16 @@ fun Application.configureSockets() {
         webSocket("/chat") { // websocketSession
             sessions.add(this)
             try {
-                sendAllMessages()
+                sendAllMessages(repository)
                 while (true) {
-                    val newMessage = receiveDeserialized<Message>()
-                    MessageRepository.addMessage(newMessage)
+                    val newTextMessage = receiveDeserialized<TextMessage>()
+                    repository.addMessage(newTextMessage)
                     // Send the message to all open sessions
                     val it = sessions.iterator()
                     while (it.hasNext()) {
                         val session = it.next()
                         try {
-                            session.sendSerialized(newMessage)
+                            session.sendSerialized(newTextMessage)
                         } catch (e: Exception) {
                             println(e.printStackTrace())
                             it.remove()
@@ -54,8 +56,8 @@ fun Application.configureSockets() {
     }
 }
 
-private suspend fun DefaultWebSocketServerSession.sendAllMessages() {
-    for (message in MessageRepository.getAllMessages()) {
+private suspend fun DefaultWebSocketServerSession.sendAllMessages(repository: MessageRepository) {
+    for (message in repository.getAllMessages()) {
         sendSerialized(message)
     }
 }
