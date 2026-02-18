@@ -13,6 +13,5 @@ data class MessageDTA(val user: String, val content: String, val timestamp: Long
         fun fromTextMessage(message: TextMessage) =
             MessageDTA(message.user, message.content, message.timestamp)
     }
-
 }
 

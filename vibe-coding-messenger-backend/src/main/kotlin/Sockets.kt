@@ -2,7 +2,8 @@ package com.example.com
 
 import com.example.com.dta.MessageDTA
 import com.example.com.models.TextMessage
-import com.example.com.repositories.InMemoryMessageMessageRepository
+import com.example.com.repositories.InMemoryMessageRepository
+import com.example.com.repositories.JsonFileMessageRepository
 import com.example.com.repositories.MessageRepository
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.server.application.*
@@ -15,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 fun Application.configureSockets() {
-    val repository = InMemoryMessageMessageRepository()
+    val repository = JsonFileMessageRepository()
 
     install(WebSockets) {
         contentConverter = KotlinxWebsocketSerializationConverter(Json{ ignoreUnknownKeys = true})
@@ -51,6 +52,7 @@ fun Application.configureSockets() {
                 // handle/log if needed
                 println(e.printStackTrace())
             } finally {
+                repository.close()
                 // Ensure removal of the session when done
                 sessions.remove(this)
             }

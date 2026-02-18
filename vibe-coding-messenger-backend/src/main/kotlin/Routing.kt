@@ -1,7 +1,8 @@
 package com.example.com
 
 
-import com.example.com.repositories.InMemoryMessageMessageRepository
+import com.example.com.repositories.InMemoryMessageRepository
+import com.example.com.repositories.JsonFileMessageRepository
 import io.ktor.server.application.*
 import io.ktor.server.http.content.staticResources
 
@@ -10,7 +11,7 @@ import io.ktor.server.routing.*
 
 
 fun Application.configureRouting() {
-    val repository = InMemoryMessageMessageRepository()
+    val repository = JsonFileMessageRepository()
 
     routing {
         get("/") {
