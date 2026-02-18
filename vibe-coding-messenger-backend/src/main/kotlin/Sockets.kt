@@ -1,5 +1,6 @@
 package com.example.com
 
+import com.example.com.dta.MessageDTA
 import com.example.com.models.TextMessage
 import com.example.com.repositories.InMemoryMessageMessageRepository
 import com.example.com.repositories.MessageRepository
@@ -9,6 +10,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
 import java.util.Collections
+import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -30,8 +32,9 @@ fun Application.configureSockets() {
             try {
                 sendAllMessages(repository)
                 while (true) {
-                    val newTextMessage = receiveDeserialized<TextMessage>()
-                    repository.addMessage(newTextMessage)
+                    val newTextMessage = receiveDeserialized<MessageDTA>()
+                    val generatedUUid = UUID.randomUUID().toString()
+                    repository.addMessage(newTextMessage.toTextMessage(generatedUUid))
                     // Send the message to all open sessions
                     val it = sessions.iterator()
                     while (it.hasNext()) {
@@ -58,6 +61,6 @@ fun Application.configureSockets() {
 
 private suspend fun DefaultWebSocketServerSession.sendAllMessages(repository: MessageRepository) {
     for (message in repository.getAllMessages()) {
-        sendSerialized(message)
+        sendSerialized(MessageDTA.fromTextMessage(message as TextMessage))
     }
 }
